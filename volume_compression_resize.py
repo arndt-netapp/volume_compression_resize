@@ -34,7 +34,7 @@ from netapp_ontap.resources import Volume
 # Get CLI arguments.
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Retrieve NetApp flexvol data and calculate recommended size increases."
+        description="Retrieve NetApp volume data and calculate recommended size increase."
     )
     parser.add_argument("-cluster", required=True, help="Cluster hostname or IP")
     parser.add_argument("-aggr", required=True, help="Aggregate name to filter volumes")

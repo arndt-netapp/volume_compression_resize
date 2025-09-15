@@ -28,7 +28,7 @@ Using volume_compression_resize.py
 usage: volume_compression_resize.py [-h] -cluster CLUSTER -aggr AGGR -user
                                     USER [-debug] [-xml]
 
-Retrieve NetApp flexvol data and calculate recommended size increases.
+Retrieve NetApp volume data and calculate recommended size increase.
 
 optional arguments:
   -h, --help        show this help message and exit
