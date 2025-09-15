@@ -94,7 +94,7 @@ def main():
             print(f"volume size -vserver {svm} -volume {vol_name} -new-size +{recommended_increase}")
 
         # Perform calculations and print FlexGroup recommendations.
-        if style == "flexgroup":
+        if style == "flexgroup" and compression_saved:
             available_gb = int(available / (1024*1024*1024))
             compression_saved_gb = ceil(compression_saved / (1024*1024*1024))
             afs_size = used + available
