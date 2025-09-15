@@ -2,11 +2,10 @@
 
 ################################################################################
 #
-# This sample code pulls flexvol level compression savings for a given aggregate
+# This sample code pulls volume level compression savings for a given aggregate
 # and gives a recommendation for increasing volume size.
 #
 # Setup Instructions:
-#
 # 1. Create and activate a Python virtual environment:
 #   $ python3 -m venv netapp-env
 #   $ source netapp-env/bin/activate
@@ -16,6 +15,12 @@
 #
 # 3. Run the script with CLI options:
 #   $ volume_compression_resize.py -cluster <CLUSTER> -aggr <aggr> -user <USER>
+#
+# FlexGroup notes:
+# 1. FlexGroups are likely to have constituent volumes moved at various times.
+# 2. Recommendations are made to keep the FlexGroup no more than 90% full.
+# 3. ONTAP will automatically try to keep all FlexGroup constituents at a
+#    similar level of free space.
 #
 ################################################################################
 
@@ -35,7 +40,7 @@ def parse_args():
     parser.add_argument("-aggr", required=True, help="Aggregate name to filter volumes")
     parser.add_argument("-user", required=True, help="Username for authentication")
     parser.add_argument("-debug", action='store_true', required=False, help="Enable debug")
-    parser.add_argument("-details", action='store_true', required=False, help="Enable detaild debug")
+    parser.add_argument("-xml", action='store_true', required=False, help="Enable xml debug")
     return parser.parse_args()
 
 # Main.
@@ -69,24 +74,38 @@ def main():
         style = volume.style
         compression_saved = volume.efficiency.space_savings.compression
         snapshot_percent = volume.space.snapshot.reserve_percent
+        available = volume.space.available
+        used = volume.space.used
 
         # Calculate the required increase.
-        if style == "flexvol":
-            recommended_increase = ceil(compression_saved / ((100-snapshot_percent)/100))
+        recommended_increase = ceil(compression_saved / ((100-snapshot_percent)/100))
 
         # Debugging if required.
-        if style == "flexvol" and args.debug:
-            print(f"{svm}:{vol_name} {compression_saved} {snapshot_percent} Recommended Size Increase: {recommended_increase:.2f} bytes\n")
-        if style == "flexvol" and args.details:
+        if args.debug:
+            print(f"DEBUG: {svm}:{vol_name} compression_saved:{compression_saved} snap_reserve:{snapshot_percent}")
+            print(f"DEBUG: {svm}:{vol_name} Recommended Size Increase: {recommended_increase} bytes")
+        if args.xml:
+            print("START XML")
             pprint.pprint(volume.to_dict())
+            print("END XML")
 
-        # Print out volume resize command.
+        # Print out FlexVol volume resize recommended command.
         if style == "flexvol" and compression_saved:
             print(f"volume size -vserver {svm} -volume {vol_name} -new-size +{recommended_increase}")
 
-        # Print a warning for FlexGroups which may require special handling.
+        # Perform calculations and print FlexGroup recommendations.
         if style == "flexgroup":
-            print(f"volume '{vol_name}' is a FlexGroup! Perform manual resizing if required.")
+            available_gb = int(available / (1024*1024*1024))
+            compression_saved_gb = ceil(compression_saved / (1024*1024*1024))
+            afs_size = used + available
+            used_wo_compression = used + compression_saved
+            used_percent_wo_compression = int(100 * ((used_wo_compression) / afs_size))
+            print(f"FlexGroup '{vol_name}' has {available_gb}GB available and {compression_saved_gb}GB saved by compression.")
+            print(f"FlexGroup '{vol_name}' capacity utilization without compression savings would be {used_percent_wo_compression}%")
+            if used_percent_wo_compression > 90:
+                target_90_capacity = ceil((used_wo_compression / .9) - afs_size)
+                target_90_capacity_gb = ceil(target_90_capacity / (1024*1024*1024))
+                print(f"FlexGroup '{vol_name}' needs an extra {target_90_capacity_gb}GB to stay at 90% capacity without compression savings")
 
 if __name__ == "__main__":
     main()
