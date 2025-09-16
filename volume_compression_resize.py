@@ -123,7 +123,7 @@ def main():
                 print(f"INFO: FlexGroup '{vol_name}' has {available_gb}GB available and {compression_saved_gb}GB saved by compression.")
                 print(f"INFO: FlexGroup '{vol_name}' capacity utilization without compression savings would be {used_percent_wo_compression}%.")
             if args.check and used_percent_wo_compression > args.target:
-                target_capacity = ceil((used_wo_compression / (args.target/100)) - afs_size)
+                target_capacity = ceil(((used_wo_compression / (args.target/100)) - afs_size) / ((100-snapshot_percent)/100))
                 target_capacity_gb = ceil(target_capacity / (1024*1024*1024))
                 print(f"INFO: '{vol_name}' needs an extra {target_capacity_gb}GB to stay at {args.target}% capacity without compression savings.")
                 print(f"volume size -vserver {svm} -volume {vol_name} -new-size +{target_capacity_gb}g")
