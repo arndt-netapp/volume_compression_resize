@@ -15,7 +15,7 @@
 #
 # 3. Run the script with CLI options:
 #   $ volume_compression_resize.py -cluster <CLUSTER> -aggr <aggr> -user <USER>
-#                                  [-target <percentage>] [-check]
+#                                  [-check] [-target <percentage>]
 #                                  [-debug] [-xml]
 #
 # Examples:
@@ -85,14 +85,18 @@ def main():
     # Iterate over the volumes and print the required size increase.
     for volume in volumes:
         # Gather volume attributes.
-        volume.get(fields="name,svm.name,style,efficiency,space,aggregates")
+        volume.get(fields="name,svm.name,style,type,efficiency,space,aggregates")
         vol_name = volume.name
         svm = volume.svm.name
         style = volume.style
+        type = volume.type
         compression_saved = volume.efficiency.space_savings.compression
         snapshot_percent = volume.space.snapshot.reserve_percent
         used = volume.space.used
         available = volume.space.available
+
+        # Skip snapmirror destination volumes.
+        if type == "dp": continue
 
         # Perform the required calculations.
         recommended_increase = ceil(compression_saved / ((100-snapshot_percent)/100))
