@@ -57,3 +57,11 @@ optional arguments:
   -debug            Enable debug
   -xml              Enable xml debug
 ```
+
+
+Related documentation updates:
+https://docs.netapp.com/us-en/ontap/concepts/builtin-storage-efficiency-concept.html
+https://docs.netapp.com/us-en/ontap/volumes/increase-volume-active-file-system-size.html
+https://docs.netapp.com/us-en/ontap/volumes/move-volume-task.html
+https://docs.netapp.com/us-en/ontap/volumes/enable-temperature-sensitive-efficiency-concept.html
+
